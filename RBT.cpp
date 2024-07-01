@@ -1,199 +1,85 @@
+#include <iostream>
 #include "RBT.hpp"
 
+using namespace std;
+using namespace std::chrono;
 
-RBTreeNode* createNode(int key) {
-    RBTreeNode* node = new RBTreeNode;
-    node->key = key;
-    node->left = node->right = node->parent = nullptr;
-    node->color = RED; // Novos nós são sempre vermelhos inicialmente
-    return node;
-}
+int main() {
+    RBTreeNode *root = nullptr;
+    cout<<"==== TESTES ===="<<endl;
+    // Inserção de alguns nós para teste e medição do tempo de execução
+    int numElements = 10000; // Número de elementos para inserir na árvore
+    auto start = high_resolution_clock::now();
 
-//rotação à esquerda
-void rotateLeft(RBTreeNode *&root, RBTreeNode *&node) {
-    RBTreeNode *rightChild = node->right;
-    node->right = rightChild->left;
-    
-    if (node->right != nullptr)
-        node->right->parent = node;
-    
-    rightChild->parent = node->parent;
-    
-    if (node->parent == nullptr)
-        root = rightChild;
-    else if (node == node->parent->left)
-        node->parent->left = rightChild;
-    else
-        node->parent->right = rightChild;
-    
-    rightChild->left = node;
-    node->parent = rightChild;
-}
-
-//rotação à direita
-void rotateRight(RBTreeNode *&root, RBTreeNode *&node) {
-    RBTreeNode *leftChild = node->left;
-    node->left = leftChild->right;
-    
-    if (node->left != nullptr)
-        node->left->parent = node;
-    
-    leftChild->parent = node->parent;
-    
-    if (node->parent == nullptr)
-        root = leftChild;
-    else if (node == node->parent->left)
-        node->parent->left = leftChild;
-    else
-        node->parent->right = leftChild;
-    
-    leftChild->right = node;
-    node->parent = leftChild;
-}
-
-//corrigindo a árvore após a inserção
-void fixInsertRBTree(RBTreeNode *&root, RBTreeNode *&node) {
-    RBTreeNode *parent = nullptr;
-    RBTreeNode *grandparent = nullptr;
-    
-    while (node != root && node->color != BLACK && node->parent->color == RED) {
-        parent = node->parent;
-        grandparent = parent->parent;
-        
-        // pai do nó é filho esquerdo do avô
-        if (parent == grandparent->left) {
-            RBTreeNode *uncle = grandparent->right;
-            
-            // tio vermelho
-            if (uncle != nullptr && uncle->color == RED) {
-                grandparent->color = RED;
-                parent->color = BLACK;
-                uncle->color = BLACK;
-                node = grandparent;
-            } else {
-                //Caso onde nó é filho direito - rotação à esquerda
-                if (node == parent->right) {
-                    rotateLeft(root, parent);
-                    node = parent;
-                    parent = node->parent;
-                }
-                
-                // Caso onde nó  é filho esquerdo - rotação à direita
-                rotateRight(root, grandparent);
-                swap(parent->color, grandparent->color);
-                node = parent;
-            }
-        } else {
-            //Caso onde pai do nó é filho direito do avô
-            RBTreeNode *uncle = grandparent->left;
-            
-            //tio também é vermelho
-            if (uncle != nullptr && uncle->color == RED) {
-                grandparent->color = RED;
-                parent->color = BLACK;
-                uncle->color = BLACK;
-                node = grandparent;
-            } else {
-                //Caso onde é filho esquerdo - rotação à direita
-                if (node == parent->left) {
-                    rotateRight(root, parent);
-                    node = parent;
-                    parent = node->parent;
-                }
-                
-                //Caso onde nó é filho direito - rotação à esquerda
-                rotateLeft(root, grandparent);
-                swap(parent->color, grandparent->color);
-                node = parent;
-            }
-        }
+    for (int i = 1; i <= numElements; ++i) {
+        insertRBTree(root,i);
     }
-    root->color = BLACK;
-}
 
-//função para inserir um novo nó na árvore
-void insertRBTree(RBTreeNode *&root, int key) {
-    RBTreeNode *node = createNode(key);
-    RBTreeNode *parent = nullptr;
-    RBTreeNode *current = root;
-    
-    //encontrando posição de inserção
-    while (current != nullptr) {
-        parent = current;
-        if (key < current->key)
-            current = current->left;
-        else
-            current = current->right;
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<nanoseconds>(end - start).count();
+    cout << "\nTempo de inserção de " << numElements << " elementos: " << duration << " nanosegundos" << endl;
+
+    // Exemplo de percurso em ordem simétrica (inorder)
+    cout << "\nInorder traversal: ";
+    inorderHelper(root,false);
+    cout << endl;
+
+    //exemplo de busca e medição do tempo de execução
+    int keyToSearch = numElements / 2;
+    start = high_resolution_clock::now();
+    RBTreeNode *searchResult = searchRBTree(root, keyToSearch);
+    end = high_resolution_clock::now();
+    duration = duration_cast<nanoseconds>(end - start).count();
+
+    if (searchResult != nullptr) {
+        cout << "\nNó " << keyToSearch << " encontrado." << endl;
+    } else {
+        cout << "\nNó " << keyToSearch << " não encontrado." << endl;
     }
-    
-    //inserindo o novo nó
-    node->parent = parent;
-    if (parent == nullptr)
-        root = node;
-    else if (key < parent->key)
-        parent->left = node;
-    else
-        parent->right = node;
-    
-    //corrigindo a árvore (após as operaçoes)
-    fixInsertRBTree(root, node);
-}
+    cout << "\nTempo de busca: " << duration << " nanosegundos" << endl;
 
-//Realizar todo o percurso em ordem simétrica (inorder)
-void inorderHelper(RBTreeNode *node,bool verbose) {
-    if (node == nullptr)
-        return;
-    
-    inorderHelper(node->left,verbose);
-    if (verbose)
-        cout << node->key << " ";
-
-    inorderHelper(node->right,verbose);
-}
-
-// Função para realizar busca por um nó específico
-RBTreeNode* searchRBTree(RBTreeNode* node, int key) {
-    if (node == nullptr || node->key == key)
-        return node;
-
-    if (key < node->key)
-        return searchRBTree(node->left, key);
-
-    return searchRBTree(node->right, key);
-}
-
-//Função para encontrar o nó mínimo 
-RBTreeNode* minimumRBTree(RBTreeNode* node) {
-    RBTreeNode* current = node;
-    while (current != nullptr && current->left != nullptr)
-        current = current->left;
-    return current;
-}
-
-// Função para encontrar o nó máximo
-RBTreeNode* maximumRBTree(RBTreeNode* node) {
-    RBTreeNode* current = node;
-    while (current != nullptr && current->right != nullptr)
-        current = current->right;
-    return current;
-}
-
-// Função para calcular a altura da árvore
-int heightRBTree(RBTreeNode* node) {
-    if (node == nullptr)
-        return 0;
-    else {
-        int leftHeight = heightRBTree(node->left);
-        int rightHeight = heightRBTree(node->right);
-        return (leftHeight > rightHeight ? leftHeight : rightHeight) + 1;
+    int keyToSearch2 = numElements+1;
+    start = high_resolution_clock::now();
+    RBTreeNode *searchResult2 = searchRBTree(root, keyToSearch2);
+    end = high_resolution_clock::now();
+    duration = duration_cast<nanoseconds>(end - start).count();
+    if (searchResult2 != nullptr) {
+        cout << "\nNó " << keyToSearch2 << " encontrado." << endl;
+    } else {
+        cout << "\nNó " << keyToSearch2 << " não encontrado." << endl;
     }
-}
+    cout << "\nTempo de busca: " << duration << " nanosegundos" << endl;
 
-// Função para liberar a memória da árvore
-void deleteRBTree(RBTreeNode* node) {
-    if (node == nullptr)
-        return;
-    deleteRBTree(node->left);
-    deleteRBTree(node->right);
-    delete node;
+    //exemplo de busca do mínimo e máximo
+    start = high_resolution_clock::now();
+    RBTreeNode *minNode = minimumRBTree(root);
+    end = high_resolution_clock::now();
+    duration = duration_cast<nanoseconds>(end - start).count();
+    if (minNode != nullptr) {
+        cout << "\nNó mínimo: " << minNode->key << " (Tempo: " << duration << " nanosegundos)" << endl;
+    }
+
+    start = high_resolution_clock::now();
+    RBTreeNode *maxNode = maximumRBTree(root);
+    end = high_resolution_clock::now();
+    duration = duration_cast<nanoseconds>(end - start).count();
+    if (maxNode != nullptr) {
+        cout << "\nNó máximo: " << maxNode->key << " (Tempo: " << duration << " nanosegundos)" << endl;
+    }
+
+    //exemplo de cálculo da altura da árvore
+    start = high_resolution_clock::now();
+    int treeHeight = heightRBTree(root);
+    end = high_resolution_clock::now();
+    duration = duration_cast<nanoseconds>(end - start).count();
+    cout << "\nAltura da árvore: " << treeHeight << " (Tempo: " << duration << " nanosegundos)" << endl;
+
+    //libera a memória alocada pela árvore
+    start = high_resolution_clock::now();
+    deleteRBTree(root);
+    end = high_resolution_clock::now();
+    duration = duration_cast<nanoseconds>(end - start).count();
+    cout << "\nTempo para liberar a memória: " << duration << " nanosegundos" << endl;
+
+    return 0;
 }
