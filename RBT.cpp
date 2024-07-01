@@ -30,7 +30,7 @@ int main() {
     RBTreeNode *searchResult = searchRBTree(root, keyToSearch);
     end = high_resolution_clock::now();
     duration = duration_cast<nanoseconds>(end - start).count();
-
+    //busca com elemento que está na árvore
     if (searchResult != nullptr) {
         cout << "\nNó " << keyToSearch << " encontrado." << endl;
     } else {
@@ -43,6 +43,7 @@ int main() {
     RBTreeNode *searchResult2 = searchRBTree(root, keyToSearch2);
     end = high_resolution_clock::now();
     duration = duration_cast<nanoseconds>(end - start).count();
+    //busca com elemento que não está na árvore
     if (searchResult2 != nullptr) {
         cout << "\nNó " << keyToSearch2 << " encontrado." << endl;
     } else {
