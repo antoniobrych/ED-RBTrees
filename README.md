@@ -9,8 +9,9 @@ Este repositório contém uma implementação de uma Árvore Rubro-Negra em C++.
 - `RBT.cpp`: Implementação das funções da Árvore Rubro-Negra.
 - `main.cpp`: Arquivo principal com exemplos de uso e testes.
 
-## Compilação e Execução
+## Relatório
 
+- `relatorio_ed.pdf`: Arquivo `.pdf` que contém o relatório solicitado na atividade.
 ### Pré-requisitos
 
 - Compilador C++ (g++, clang, etc.)
